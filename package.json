@@ -1,0 +1,13 @@
+{
+  "name": "prog1.tri2.ativ2",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "@types/node": "^25.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "5.9.3"
+  },
+  "build": "tsc",
+  "watch": "tsc --watch"
+}
