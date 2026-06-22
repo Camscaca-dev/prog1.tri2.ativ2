@@ -1,5 +1,5 @@
 class Item {
-  constructor(public title: string) { }
+  constructor(public title: string) {}
 }
 
 class TodoList {
@@ -18,59 +18,67 @@ class TodoList {
   }
 
   private async loadListFromDisk() {
-    const file = Bun.file(this.filePath)
-
-    //nao achou json ent cria lista vazia, n deu pra criar o arquivo por algum motivo
-    if (!(await file.exists())) {
-      await Bun.write(this.filePath, "[]")
+    try {
+      const file = Bun.file(this.filePath)
+      const data = await file.json() as Item[]
+      return data.map(item => new Item(item.title))
+    } catch {
       return []
     }
-
-    const data = await file.json() as Item[]
-    const items = data.map((v: any) => new Item(v.title))
-    return items
   }
 
-  // Função que adiciona um novo item a lista
   async addItem(item: Item) {
     const items = await this.items
+
     if (!item)
       throw "Item inválido"
+
     if (!item.title.trim())
-      throw "Tem q conter um título"
+      throw "Item deve conter um título"
+
     items.push(item)
+
     await this.saveListToDisk()
+
+    return items.length - 1
   }
 
-  // Remove item da lista por um indice
   async removeItem(index: number) {
     const items = await this.items
+
+    if (!items[index])
+      throw `Item ${index} não existe`
+
     items.splice(index, 1)
+
     await this.saveListToDisk()
   }
 
-  // cópia da lista de itens
-  async getItems() {
+  async updateItem(index: number, title: string) {
     const items = await this.items
-    return Array.from(items)
 
+    if (!items[index])
+      throw `Item ${index} não existe`
+
+    if (!title.trim())
+      throw "Título inválido"
+
+    items[index].title = title
+
+    await this.saveListToDisk()
   }
 
-  // atualiza o title pelo indice, gambiarras pra arrumar futuramente por causa do b.o do Item dar nulo/any :(
-  async updateItem(index: number, newItem: string) {
-    const items: Item[] = await this.items
+  async getItems() {
+    return Array.from(await this.items)
+  }
 
-    // evitar os b.o burro da máquina
-    if (index < 0 || index >= items.length) {
-      throw "indice invalido"
-    }
+  async getItem(index: number) {
+    const items = await this.items
 
-    if (!items[index]) {
-      throw "item não encontrado"
-    }
+    if (!items[index])
+      throw `Item ${index} não existe`
 
-    items[index].title = newItem
-    await this.saveListToDisk()
+    return items[index]
   }
 }
 

@@ -157,7 +157,7 @@
 
   <script type="module">
     import * as monacoEditor from 'https://esm.run/monaco-editor';
-    function applyEditor(el) { 
+    function applyEditor(el) {
       return monacoEditor.editor.create(el, {
         value: '',
         language: 'json',
@@ -180,8 +180,17 @@
 
     // Format Response Body
     function formatResponseBody(contentType, bodyText) {
-      if (contentType.includes('application/json'))
-        return JSON.stringify(JSON.parse(bodyText), null, 2)
+      if (
+        contentType &&
+        contentType.includes("application/json")
+      ) {
+        return JSON.stringify(
+          JSON.parse(bodyText),
+          null,
+          2
+        )
+      }
+
       return bodyText
     }
 

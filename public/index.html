@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do</title>
+</head>
+
+<body>
+
+  <h1>Lista de Tarefas</h1>
+
+  <form id="elCreateForm">
+    <input
+      id="elTitleInput"
+      placeholder="Nova tarefa"
+    >
+
+    <button>
+      Adicionar
+    </button>
+  </form>
+
+  <hr>
+
+  <ul id="elList"></ul>
+
+  <template id="elItemTemplate">
+    <li>
+      <span class="title"></span>
+
+      <button class="edit">
+        editar
+      </button>
+
+      <button class="delete">
+        excluir
+      </button>
+    </li>
+  </template>
+
+  <script>
+    const elCreateForm =
+      document.querySelector("#elCreateForm")
+
+    const elTitleInput =
+      document.querySelector("#elTitleInput")
+
+    const elList =
+      document.querySelector("#elList")
+
+    const elItemTemplate =
+      document.querySelector("#elItemTemplate")
+
+    function createItemElement(index, title) {
+
+      const clone =
+        elItemTemplate.content.cloneNode(true)
+
+      const elTitle =
+        clone.querySelector(".title")
+
+      const elEdit =
+        clone.querySelector(".edit")
+
+      const elDelete =
+        clone.querySelector(".delete")
+
+      elTitle.textContent = title
+
+      elEdit.addEventListener(
+        "click",
+        async () => {
+
+          const novoTitulo =
+            prompt(
+              "Novo título:",
+              title
+            )
+
+          if (!novoTitulo)
+            return
+
+          const request =
+            await fetch(
+              `/todo/${index}`,
+              {
+                method: "PUT",
+                headers: {
+                  "content-type":
+                    "application/json"
+                },
+                body: JSON.stringify({
+                  title: novoTitulo
+                })
+              }
+            )
+
+          if (!request.ok) {
+            alert(await request.text())
+            return
+          }
+
+          elTitle.textContent =
+            novoTitulo
+        }
+      )
+
+      elDelete.addEventListener(
+        "click",
+        async () => {
+
+          const request =
+            await fetch(
+              `/todo/${index}`,
+              {
+                method: "DELETE"
+              }
+            )
+
+          if (!request.ok) {
+            alert(await request.text())
+            return
+          }
+
+          loadItems()
+        }
+      )
+
+      elList.append(clone)
+    }
+
+    async function loadItems() {
+
+      const request =
+        await fetch("/todo")
+
+      const items =
+        await request.json()
+
+      elList.innerHTML = ""
+
+      items.forEach(
+        (item, index) => {
+          createItemElement(
+            index,
+            item.title
+          )
+        }
+      )
+    }
+
+    elCreateForm.addEventListener(
+      "submit",
+      async (ev) => {
+
+        ev.preventDefault()
+
+        const title =
+          elTitleInput.value.trim()
+
+        if (!title)
+          return
+
+        const request =
+          await fetch(
+            "/todo",
+            {
+              method: "POST",
+              headers: {
+                "content-type":
+                  "application/json"
+              },
+              body: JSON.stringify({
+                title
+              })
+            }
+          )
+
+        if (!request.ok) {
+          alert(await request.text())
+          return
+        }
+
+        elTitleInput.value = ""
+
+        loadItems()
+      }
+    )
+
+    loadItems()
+  </script>
+
+</body>
+
+</html>
